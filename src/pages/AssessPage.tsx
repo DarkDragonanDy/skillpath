@@ -5,7 +5,7 @@ import {
   generateAssessment,
   determineLevel,
 } from "../services/ai";
-import { AssessmentQuestion } from "../types/skill";
+import type { AssessmentQuestion } from "../types/skill";
 
 export default function AssessPage() {
   const { skillName, setLevel } = useSkillStore();

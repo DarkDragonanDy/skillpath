@@ -4,7 +4,7 @@ import { useSkillStore } from "../store/skillStore";
 import { useAuthStore } from "../store/authStore";
 import { generateLearningPlan } from "../services/ai";
 import { savePlan, saveProgress } from "../services/firebase";
-import { Resource } from "../types/skill";
+import type { Resource } from "../types/skill";
 
 export default function LearningPage() {
   const navigate = useNavigate();
