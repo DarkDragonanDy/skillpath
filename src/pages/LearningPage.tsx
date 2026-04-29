@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useSkillStore } from "../store/skillStore";
@@ -29,6 +29,7 @@ export default function LearningPage() {
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
+  const saveStarted = useRef(false);
 
   useEffect(() => {
     if (!skillName) { navigate("/"); return; }
@@ -37,14 +38,14 @@ export default function LearningPage() {
       generateLearningPlan(skillName, level).then(async (newPlan) => {
         setPlan(newPlan);
         setGenerating(false);
-        if (user && !courseId) {
+        if (user && !courseId && !saveStarted.current) {
+          saveStarted.current = true;
           const id = await saveCourse(user.uid, newPlan);
           setCourseId(id);
         }
       });
     }
   }, [skillName, plan, generating, level, navigate, setPlan, setGenerating, user, courseId, setCourseId]);
-
   const goToLesson = (index: number) => {
     setCurrentLesson(index);
     setShowQuiz(false);

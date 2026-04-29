@@ -11,7 +11,7 @@ export default function LoginPage() {
           <div className="login-icon">
             <Brain size={48} />
           </div>
-          <h1 className="login-title">SkillLearn</h1>
+          <h1 className="login-title">SkillPath</h1>
           <p className="login-subtitle">
             Learn any skill with a personal AI mentor
           </p>

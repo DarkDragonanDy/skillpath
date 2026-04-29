@@ -108,17 +108,17 @@ export async function savePlan(
   return saveCourse(userId, plan);
 }
 
-export async function saveProgress(
-    userId: string,
-    skillName: string,
-    lessonIndex: number
-): Promise<void> {
-  // No-op: progress is now tracked per course
-}
-
-export async function getProgress(
-    userId: string,
-    skillName: string
-): Promise<number> {
-  return 0;
-}
+// export async function saveProgress(
+//     userId: string,
+//     skillName: string,
+//     lessonIndex: number
+// ): Promise<void> {
+//   // No-op: progress is now tracked per course
+// }
+//
+// export async function getProgress(
+//     userId: string,
+//     skillName: string
+// ): Promise<number> {
+//   return 0;
+// }
