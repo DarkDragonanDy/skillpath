@@ -38,7 +38,7 @@ export default function AssessPage() {
       setCurrentQ(currentQ + 1);
     } else {
       // Все вопросы отвечены — определяем уровень
-      const level = determineLevel(newAnswers);
+      const level = determineLevel(newAnswers, questions);
       setLevel(level);
       navigate("/learn");
     }
