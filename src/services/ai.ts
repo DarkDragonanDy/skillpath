@@ -1,22 +1,19 @@
-import type {LearningPlan, AssessmentQuestion} from "../types/skill";
+import type { LearningPlan, AssessmentQuestion, QuizQuestion } from "../types/skill";
 
-// =============================================
-// НАСТРОЙКА: замени на URL твоих Cloud Functions
-// после деплоя Firebase покажет URLs в терминале
-// =============================================
+
 const GENERATE_PLAN_URL = "https://generateplan-m4gebfvvnq-uc.a.run.app";
 const ASSESS_LEVEL_URL = "https://assesslevel-m4gebfvvnq-uc.a.run.app";
-// ============================================
-// Генерация вопросов для определения уровня
-// ============================================
+const GENERATE_QUIZ_URL = "https://generatequiz-m4gebfvvnq-uc.a.run.app";
+
+
 export async function generateAssessment(
     skillName: string
 ): Promise<AssessmentQuestion[]> {
   try {
-    const response = await fetch(ASSESS_LEVEL_URL,  {
+    const response = await fetch(ASSESS_LEVEL_URL, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({skillName}),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skillName }),
     });
 
     if (!response.ok) {
@@ -26,23 +23,20 @@ export async function generateAssessment(
     const data = await response.json();
     return data.questions;
   } catch (error) {
-    console.error("Ошибка генерации опросника:", error);
-    // Возвращаем базовые вопросы если AI недоступен
+    console.error("Error generating assessment:", error);
     return getFallbackQuestions(skillName);
   }
 }
 
 // ============================================
-// Определение уровня по ответам
+// Determine level from answers
 // ============================================
 export function determineLevel(
     answers: number[],
     questions: AssessmentQuestion[]
 ): string {
-  // Первый вопрос — самооценка опыта
   const experienceAnswer = answers[0];
 
-  // Считаем правильные ответы на вопросы со знаниями
   let correctCount = 0;
   let knowledgeQuestions = 0;
 
@@ -55,7 +49,6 @@ export function determineLevel(
     }
   });
 
-  // Комбинируем самооценку и реальные знания
   const knowledgeRatio =
       knowledgeQuestions > 0 ? correctCount / knowledgeQuestions : 0;
 
@@ -65,7 +58,7 @@ export function determineLevel(
 }
 
 // ============================================
-// Генерация учебного плана
+// Generate learning plan
 // ============================================
 export async function generateLearningPlan(
     skillName: string,
@@ -74,8 +67,8 @@ export async function generateLearningPlan(
   try {
     const response = await fetch(GENERATE_PLAN_URL, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({skillName, level}),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skillName, level }),
     });
 
     if (!response.ok) {
@@ -85,40 +78,66 @@ export async function generateLearningPlan(
     const plan: LearningPlan = await response.json();
     return plan;
   } catch (error) {
-    console.error("Ошибка генерации плана:", error);
-    // Возвращаем заглушку если AI недоступен
+    console.error("Error generating plan:", error);
     return getFallbackPlan(skillName, level);
   }
 }
 
 // ============================================
-// Запасные данные если AI недоступен
+// Generate quiz for a lesson
+// ============================================
+export async function generateQuiz(
+    skillName: string,
+    lessonTitle: string,
+    lessonContent: string
+): Promise<QuizQuestion[]> {
+  try {
+    const response = await fetch(GENERATE_QUIZ_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skillName, lessonTitle, lessonContent }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.questions;
+  } catch (error) {
+    console.error("Error generating quiz:", error);
+    return getFallbackQuiz();
+  }
+}
+
+// ============================================
+// Fallback data when AI is unavailable
 // ============================================
 function getFallbackQuestions(skillName: string): AssessmentQuestion[] {
   return [
     {
-      question: `Как бы вы оценили свой опыт в "${skillName}"?`,
+      question: `How would you rate your experience with "${skillName}"?`,
       options: [
-        "Никогда не пробовал",
-        "Знаю основы",
-        "Использую регулярно",
-        "Могу обучать других",
+        "Never tried it",
+        "Know the basics",
+        "Use it regularly",
+        "Can teach others",
       ],
       correctIndex: -1,
     },
     {
-      question: `Что вы хотите достичь, изучая "${skillName}"?`,
+      question: `What do you want to achieve by learning "${skillName}"?`,
       options: [
-        "Понять основы",
-        "Сделать свой проект",
-        "Сменить профессию",
-        "Углубить знания",
+        "Understand the basics",
+        "Build a project",
+        "Career change",
+        "Deepen knowledge",
       ],
       correctIndex: -1,
     },
     {
-      question: "Сколько времени в неделю вы готовы уделять?",
-      options: ["1-2 часа", "3-5 часов", "5-10 часов", "Больше 10 часов"],
+      question: "How much time per week can you dedicate?",
+      options: ["1-2 hours", "3-5 hours", "5-10 hours", "More than 10 hours"],
       correctIndex: -1,
     },
   ];
@@ -131,12 +150,12 @@ function getFallbackPlan(skillName: string, level: string): LearningPlan {
     lessons: [
       {
         id: "1",
-        title: `Введение в ${skillName}`,
+        title: `Introduction to ${skillName}`,
         content:
-            "AI-генерация временно недоступна. Попробуйте обновить страницу.",
+            "AI generation temporarily unavailable. Please refresh the page.",
         resources: [
           {
-            title: `Поиск материалов по ${skillName}`,
+            title: `Search materials on ${skillName}`,
             url: `https://www.google.com/search?q=${encodeURIComponent(skillName)}+tutorial`,
             type: "article",
           },
@@ -144,4 +163,15 @@ function getFallbackPlan(skillName: string, level: string): LearningPlan {
       },
     ],
   };
+}
+
+function getFallbackQuiz(): QuizQuestion[] {
+  return [
+    {
+      question: "Quiz generation is temporarily unavailable. Please try again later.",
+      options: ["OK", "Retry", "Skip", "Continue"],
+      correctIndex: 0,
+      explanation: "The AI service is currently unavailable.",
+    },
+  ];
 }

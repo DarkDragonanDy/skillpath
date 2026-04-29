@@ -1,4 +1,4 @@
-// Скилл который пользователь хочет изучить
+// Skill the user wants to learn
 export interface Skill {
   id: string;
   name: string;
@@ -7,7 +7,7 @@ export interface Skill {
   userId: string;
 }
 
-// Прогресс пользователя по скиллу
+// User progress for a skill
 export interface UserProgress {
   skillId: string;
   completedLessons: string[];
@@ -15,14 +15,14 @@ export interface UserProgress {
   quizScores: number[];
 }
 
-// Учебный план сгенерированный AI
+// AI-generated learning plan
 export interface LearningPlan {
   skillName: string;
   level: string;
   lessons: Lesson[];
 }
 
-// Один урок в плане
+// Single lesson in a plan
 export interface Lesson {
   id: string;
   title: string;
@@ -30,16 +30,36 @@ export interface Lesson {
   resources: Resource[];
 }
 
-// Внешний ресурс (ссылка на источник)
+// External resource (link to source)
 export interface Resource {
   title: string;
   url: string;
   type: "article" | "video" | "docs" | "tutorial";
 }
 
-// Вопрос опросника для определения уровня
+// Assessment question for level detection
 export interface AssessmentQuestion {
   question: string;
   options: string[];
   correctIndex: number;
+}
+
+// Quiz question for a lesson
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+// Saved course in Firestore
+export interface SavedCourse {
+  id: string;
+  userId: string;
+  plan: LearningPlan;
+  currentLesson: number;
+  completedLessons: number[];
+  quizScores: Record<string, number>; // lessonId -> score (0-100)
+  createdAt: unknown;
+  updatedAt: unknown;
 }
