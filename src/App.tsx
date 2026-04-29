@@ -1,25 +1,22 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider } from "./context/ThemeContext";
+import { ThemeSelector } from "./components/ThemeSelector";
 import { useAuth } from "./hooks/useAuth";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import AssessPage from "./pages/AssessPage";
 import LearningPage from "./pages/LearningPage";
 
-function App() {
+function AppRoutes() {
   const { user, loading } = useAuth();
 
-  // Пока проверяем авторизацию — показываем загрузку
   if (loading) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        Загрузка...
+      <div className="learning-loading-wrap">
+        <div className="learning-loading-card">
+          <div className="learning-spinner" />
+          <p className="learning-loading-text">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -27,7 +24,6 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Если не залогинен — показываем LoginPage */}
         {!user ? (
           <>
             <Route path="/login" element={<LoginPage />} />
@@ -46,4 +42,11 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <ThemeProvider>
+      <ThemeSelector />
+      <AppRoutes />
+    </ThemeProvider>
+  );
+}

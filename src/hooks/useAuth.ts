@@ -6,7 +6,7 @@ import { useAuthStore } from "../store/authStore";
 export function useAuth() {
   const { user, loading, setUser, setLoading } = useAuthStore();
 
-  // Слушаем изменения авторизации при загрузке приложения
+  // Subscribe to auth state changes on mount
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
@@ -15,21 +15,21 @@ export function useAuth() {
     return () => unsubscribe();
   }, [setUser, setLoading]);
 
-  // Вход через Google — одна кнопка
+  // Sign in with Google popup
   const login = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
-      console.error("Ошибка входа:", error);
+      console.error("Login error:", error);
     }
   };
 
-  // Выход
+  // Sign out
   const logout = async () => {
     try {
       await signOut(auth);
     } catch (error) {
-      console.error("Ошибка выхода:", error);
+      console.error("Logout error:", error);
     }
   };
 

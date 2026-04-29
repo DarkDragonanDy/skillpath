@@ -8,8 +8,8 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
 }
 
-// Стор для авторизации — хранит текущего юзера
-// Zustand не требует провайдеров, просто импортируй и используй
+// Auth store — holds the current Firebase user
+// Zustand needs no provider; just import and use anywhere
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
