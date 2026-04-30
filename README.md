@@ -6,29 +6,56 @@ AI-powered personalized learning platform. Enter any skill — the multi-agent b
 
 ---
 
+## Try it live
+
+**https://skill-path-0001.web.app**
+
+No installation required. Open the link, sign in with Google, and start learning.
+
+---
+
+## Testing guide (for reviewers)
+
+### Recommended flow
+
+1. Open **https://skill-path-0001.web.app**
+2. Sign in with any Google account
+3. Type a skill in the input field — e.g. `Python`, `CSS`, `Machine Learning`, `Guitar`
+4. Click **Start →** and answer 4–5 assessment questions
+5. After the last answer, wait **30–40 seconds** — the multi-agent pipeline is running:
+   - Assessor analyzes your answers
+   - Curriculum Planner builds the lesson structure
+   - Content Generator and Resource Finder work in parallel
+   - Quality Reviewer validates and may trigger a retry
+6. Browse the generated lessons in the sidebar
+7. Click **📝 Take Quiz to Complete Lesson** at the bottom of any lesson
+8. After completing a lesson, progress is saved — you can close the tab and resume later
+
+### Demo mode (instant, no AI)
+
+If you want to test the UI without waiting for generation, click **Try Demo (no AI)** on the home page. It loads a pre-built JavaScript course immediately — no API calls, no delay.
+
+### What to verify
+
+- [ ] Assessment questions are relevant to the entered skill
+- [ ] Generated lessons progress logically from basic to advanced
+- [ ] Each lesson has working resource links (YouTube or documentation)
+- [ ] Quiz questions test understanding of the lesson content
+- [ ] Progress is saved when you navigate between lessons
+- [ ] Resuming a course from the home page restores the correct lesson
+
+---
+
 ## Features
 
 - **Multi-agent pipeline** — 4 specialized AI agents collaborate to produce each learning plan
 - **Level assessment** — adaptive quiz determines beginner / intermediate / advanced
-- **Student profile** — Assessor agent analyzes your answers for personalized output
+- **Student profile** — Assessor agent analyzes answers for personalized output
 - **Parallel generation** — content and resources generated concurrently per lesson
 - **Quality review** — Reviewer agent flags weak lessons for automatic retry
-- **Quiz per lesson** — test your understanding, track scores
+- **Quiz per lesson** — test understanding, track scores
 - **Save & resume** — courses stored in Firestore, continue anytime
 - **Demo mode** — test the full UI without any AI calls
-
----
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Frontend | React + TypeScript + Vite |
-| State | Zustand |
-| Backend | Firebase Cloud Functions (TypeScript) |
-| AI | Anthropic Claude Haiku (via `@anthropic-ai/sdk`) |
-| Database | Firebase Firestore |
-| Auth | Firebase Authentication (Google) |
 
 ---
 
@@ -53,48 +80,61 @@ User answers quiz
            [Quality Reviewer]  →  approved or retry weak lessons
                   │
                   ▼
-           Final learning plan
+           Final learning plan (~30–40 seconds total)
 ```
 
-All agents use Claude Haiku. Content and Resource agents run in **batches of 2** to stay within concurrent connection limits.
+All agents use Claude Haiku. Content and Resource agents run in **batches of 2** to stay within concurrent connection rate limits.
 
 ---
 
-## Prerequisites
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React + TypeScript + Vite |
+| State | Zustand |
+| Backend | Firebase Cloud Functions (TypeScript) |
+| AI | Anthropic Claude Haiku (via `@anthropic-ai/sdk`) |
+| Database | Firebase Firestore |
+| Auth | Firebase Authentication (Google) |
+| Hosting | Firebase Hosting |
+
+---
+
+## Local development setup
+
+> This section is for developers who want to run the project locally. To simply test the app, use the live link above.
+
+### Prerequisites
 
 - Node.js 18+
 - Firebase CLI: `npm install -g firebase-tools`
 - A Firebase project with Firestore + Authentication enabled
 - An Anthropic API key
 
----
-
-## Setup
-
-### 1. Clone and install
+### Install
 
 ```bash
-git clone <repo>
+git clone https://github.com/DarkDragonanDy/skillpath
 cd skillpath
 npm install
 cd functions && npm install && cd ..
 ```
 
-### 2. Configure Firebase
+### Configure Firebase
 
 ```bash
 firebase login
-firebase use --add   # select your project
+firebase use --add
 ```
 
-### 3. Set the Anthropic secret
+### Set the Anthropic API key
 
 ```bash
 firebase functions:secrets:set ANTHROPIC_API_KEY
-# paste your key when prompted
 ```
 
-### 4. Frontend environment
+### Frontend environment
 
 Create `.env.local` in the project root:
 
@@ -107,75 +147,19 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=...
 VITE_FIREBASE_APP_ID=...
 ```
 
----
-
-## Running Locally
-
-### Frontend only
+### Run
 
 ```bash
 npm run dev
 ```
 
-Opens at `http://localhost:5173`. The app will call the **deployed** Cloud Functions (URLs in `src/services/ai.ts`).
+The app calls the deployed Cloud Functions by default. To run functions locally, start the emulator and update the URLs in `src/services/ai.ts`.
 
-### Cloud Functions emulator
-
-```bash
-firebase emulators:start --only functions
-```
-
-Then update `src/services/ai.ts` URLs to `http://127.0.0.1:5001/<project-id>/us-central1/<functionName>`.
-
----
-
-## Testing
-
-### Demo mode (zero AI calls)
-
-Click **"Try Demo (no AI)"** on the home page. Loads a hardcoded JavaScript course instantly — useful for testing UI, navigation, quiz flow, and Firestore saves without consuming tokens.
-
-### Backend health check
+### Deploy
 
 ```bash
-curl https://us-central1-<project-id>.cloudfunctions.net/ping
-# → {"status":"ok","timestamp":"...","version":"2.0.0-multi-agent"}
+npm run build && firebase deploy
 ```
-
-### TypeScript type check
-
-```bash
-# Frontend
-npx tsc --noEmit
-
-# Cloud Functions
-cd functions && npm run build
-```
-
----
-
-## Deploying
-
-### Deploy everything
-
-```bash
-firebase deploy
-```
-
-### Deploy functions only
-
-```bash
-firebase deploy --only functions
-```
-
-### Deploy hosting only
-
-```bash
-npm run build
-firebase deploy --only hosting
-```
-
-> After first deploy, copy the printed function URLs into `src/services/ai.ts` constants.
 
 ---
 
@@ -199,14 +183,3 @@ skillpath/
 │       └── index.ts           # all Cloud Functions + agent logic
 └── firebase.json
 ```
-
----
-
-## Common Issues
-
-| Problem | Fix |
-|---|---|
-| `rate_limit_error` on concurrent connections | Already handled — agents run in batches of 2 |
-| Empty resource URLs | Already handled — falls back to YouTube search |
-| Function timeout | `generatePlanAgentic` has `timeoutSeconds: 120` |
-| CORS error | All functions set `Access-Control-Allow-Origin: *` |
