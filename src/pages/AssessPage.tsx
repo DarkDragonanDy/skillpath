@@ -1,17 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSkillStore } from "../store/skillStore";
-import { generateAssessment, determineLevel } from "../services/ai";
+import { generateAssessment, analyzeAssessmentAnswers } from "../services/ai";
 import type { AssessmentQuestion } from "../types/skill";
 
 export default function AssessPage() {
-  const { skillName, setLevel } = useSkillStore();
+  const { skillName, setLevel, setStudentProfile } = useSkillStore();
   const navigate = useNavigate();
 
   const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
     if (!skillName) {
@@ -24,15 +25,17 @@ export default function AssessPage() {
     });
   }, [skillName, navigate]);
 
-  const handleAnswer = (optionIndex: number) => {
+  const handleAnswer = async (optionIndex: number) => {
     const newAnswers = [...answers, optionIndex];
     setAnswers(newAnswers);
 
     if (currentQ < questions.length - 1) {
       setCurrentQ(currentQ + 1);
     } else {
-      const level = determineLevel(newAnswers, questions);
-      setLevel(level);
+      setAnalyzing(true);
+      const profile = await analyzeAssessmentAnswers(skillName, questions, newAnswers);
+      setStudentProfile(profile);
+      setLevel(profile.level);
       navigate("/learn");
     }
   };
@@ -41,10 +44,12 @@ export default function AssessPage() {
     ? ((currentQ + 1) / questions.length) * 100
     : 0;
 
-  if (loading) {
+  if (loading || analyzing) {
     return (
       <div className="assess-container">
-        <p className="assess-loading">Preparing questions for "{skillName}"...</p>
+        <p className="assess-loading">
+          {analyzing ? `Analyzing your profile for "${skillName}"...` : `Preparing questions for "${skillName}"...`}
+        </p>
       </div>
     );
   }

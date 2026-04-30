@@ -17,7 +17,7 @@ export default function LearningPage() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const {
-    skillName, level, plan, setPlan,
+    skillName, level, studentProfile, plan, setPlan,
     currentLesson, setCurrentLesson,
     generating, setGenerating,
     courseId, setCourseId,
@@ -35,7 +35,7 @@ export default function LearningPage() {
     if (!skillName) { navigate("/"); return; }
     if (!plan && !generating) {
       setGenerating(true);
-      generateLearningPlan(skillName, level).then(async (newPlan) => {
+      generateLearningPlan(skillName, level, studentProfile ?? undefined).then(async (newPlan) => {
         setPlan(newPlan);
         setGenerating(false);
         if (user && !courseId && !saveStarted.current) {

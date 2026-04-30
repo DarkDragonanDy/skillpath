@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { LearningPlan, SavedCourse } from "../types/skill";
+import type { StudentProfile } from "../services/ai";
 
 interface SkillState {
   // What the user typed
@@ -9,6 +10,10 @@ interface SkillState {
   // Level after assessment
   level: string;
   setLevel: (level: string) => void;
+
+  // Detailed student profile from Assessor agent
+  studentProfile: StudentProfile | null;
+  setStudentProfile: (profile: StudentProfile | null) => void;
 
   // Generated learning plan
   plan: LearningPlan | null;
@@ -48,6 +53,9 @@ export const useSkillStore = create<SkillState>((set) => ({
   level: "",
   setLevel: (level) => set({ level }),
 
+  studentProfile: null,
+  setStudentProfile: (profile) => set({ studentProfile: profile }),
+
   plan: null,
   setPlan: (plan) => set({ plan }),
 
@@ -83,6 +91,7 @@ export const useSkillStore = create<SkillState>((set) => ({
       set({
         skillName: "",
         level: "",
+        studentProfile: null,
         plan: null,
         currentLesson: 0,
         generating: false,
