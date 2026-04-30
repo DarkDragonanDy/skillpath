@@ -64,7 +64,7 @@ export default function HomePage() {
       <header className="app-header">
         <span className="app-logo">
           <Brain size={22} />
-          SkillLearn
+          SkillPath
         </span>
         <div className="app-header-right">
           <span className="app-user-name">{user?.displayName}</span>

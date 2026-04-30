@@ -7,14 +7,10 @@ export interface StudentProfile {
     strengths: string[];
 }
 
-const BASE = "https://{FUNCTION_NAME}-m4gebfvvnq-uc.a.run.app";
-const fn = (name: string) => BASE.replace("{FUNCTION_NAME}", name);
-
-const ASSESS_LEVEL_URL = fn("assesslevel");
-const ANALYZE_ASSESSMENT_URL = fn("analyzeassessment");
-const GENERATE_PLAN_AGENTIC_URL = fn("generateplanagentic");
-const GENERATE_QUIZ_URL = fn("generatequiz");
-
+const ASSESS_LEVEL_URL = "https://assesslevel-m4gebfvvnq-uc.a.run.app";
+const ANALYZE_ASSESSMENT_URL = "https://us-central1-skill-path-0001.cloudfunctions.net/analyzeAssessment";
+const GENERATE_PLAN_AGENTIC_URL = "https://us-central1-skill-path-0001.cloudfunctions.net/generatePlanAgentic";
+const GENERATE_QUIZ_URL = "https://generatequiz-m4gebfvvnq-uc.a.run.app";
 // ============================================
 // Generate assessment questions (Assessor agent step 1)
 // ============================================

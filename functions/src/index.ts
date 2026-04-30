@@ -61,6 +61,19 @@ function parseAIResponse(text: string): unknown {
     return JSON.parse(clean);
 }
 
+// Run async tasks in sequential batches to respect concurrent connection limits
+async function batchedAll<T>(
+    tasks: (() => Promise<T>)[],
+    batchSize: number
+): Promise<T[]> {
+    const results: T[] = [];
+    for (let i = 0; i < tasks.length; i += batchSize) {
+        const batch = tasks.slice(i, i + batchSize).map((t) => t());
+        results.push(...await Promise.all(batch));
+    }
+    return results;
+}
+
 async function callAgent(
     client: Anthropic,
     maxTokens: number,
@@ -361,12 +374,19 @@ export const generatePlanAgentic = onRequest(
             logger.info("Agent 1: Curriculum Planner running");
             const outlines = await curriculumPlannerAgent(client, skillName, resolvedLevel, studentProfile ?? null);
 
-            // Agent 2+3: Content Generator and Resource Finder in parallel per lesson
-            logger.info("Agents 2+3: Content and Resource agents running in parallel", {lessons: outlines.length});
-            const [contentResults, resourceResults] = await Promise.all([
-                Promise.all(outlines.map((o) => contentGeneratorAgent(client, skillName, resolvedLevel, o))),
-                Promise.all(outlines.map((o) => resourceFinderAgent(client, skillName, o))),
-            ]);
+            // Agent 2+3: Content Generator then Resource Finder, each in batches of 2
+            // Sequential batching avoids exceeding concurrent connection rate limits
+            logger.info("Agent 2: Content Generator running (batched)", {lessons: outlines.length});
+            const contentResults = await batchedAll(
+                outlines.map((o) => () => contentGeneratorAgent(client, skillName, resolvedLevel, o)),
+                2
+            );
+
+            logger.info("Agent 3: Resource Finder running (batched)");
+            const resourceResults = await batchedAll(
+                outlines.map((o) => () => resourceFinderAgent(client, skillName, o)),
+                2
+            );
 
             // Assemble lessons
             const resourceMap = new Map(resourceResults.map((r) => [r.id, r.resources]));
