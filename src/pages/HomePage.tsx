@@ -1,3 +1,7 @@
+/**
+ * SkillPath — Home Page
+ * Written collaboratively by Andrej and Claude
+ */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Brain } from "lucide-react";
@@ -5,6 +9,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useSkillStore } from "../store/skillStore";
 import { useAuthStore } from "../store/authStore";
 import { getUserCourses, deleteCourse } from "../services/firebase";
+import { getDemoPlan } from "../services/ai";
 import type { SavedCourse } from "../types/skill";
 
 export default function HomePage() {
@@ -35,6 +40,15 @@ export default function HomePage() {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") handleSubmit();
+  };
+
+  const handleDemo = () => {
+    reset();
+    const plan = getDemoPlan();
+    setSkillName(plan.skillName);
+    useSkillStore.getState().setLevel(plan.level);
+    useSkillStore.getState().setPlan(plan);
+    navigate("/learn");
   };
 
   const handleResume = (course: SavedCourse) => {
@@ -99,6 +113,10 @@ export default function HomePage() {
             Start →
           </button>
         </div>
+
+        <button onClick={handleDemo} className="home-demo-btn">
+          Try Demo (no AI)
+        </button>
 
         {/* Saved courses */}
         {!loadingCourses && courses.length > 0 && (

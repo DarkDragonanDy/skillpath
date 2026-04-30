@@ -1,3 +1,7 @@
+/**
+ * SkillPath — Learning Page
+ * UI structure by Andrej, multi-agent integration and state wiring by Claude
+ */
 import {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";

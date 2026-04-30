@@ -1,3 +1,7 @@
+/**
+ * SkillPath — Global State (Zustand)
+ * Written collaboratively by Andrej and Claude
+ */
 import { create } from "zustand";
 import type { LearningPlan, SavedCourse } from "../types/skill";
 import type { StudentProfile } from "../services/ai";

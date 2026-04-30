@@ -1,3 +1,10 @@
+/**
+ * SkillPath — Firebase Cloud Functions
+ *
+ * Multi-agent backend for AI-generated learning plans.
+ * Architecture & orchestration logic: Claude (Anthropic)
+ * Product requirements, prompts, and domain design: Andrej + Claude together
+ */
 import {setGlobalOptions} from "firebase-functions";
 import {onRequest} from "firebase-functions/https";
 import {defineSecret} from "firebase-functions/params";
@@ -59,6 +66,23 @@ function parseAIResponse(text: string): unknown {
         .replace(/```\s?/g, "")
         .trim();
     return JSON.parse(clean);
+}
+
+// Replace missing or placeholder resource URLs with a YouTube search fallback
+function sanitizeResources(
+    resources: LessonResources["resources"],
+    lessonTitle: string,
+    skillName: string
+): LessonResources["resources"] {
+    return resources.map((r) => {
+        const url = (r.url ?? "").trim();
+        const isValid = url.startsWith("http") && url.length > 15 && !url.includes("https://...");
+        if (!isValid) {
+            const q = encodeURIComponent(`${skillName} ${lessonTitle}`);
+            return {...r, url: `https://www.youtube.com/results?search_query=${q}`, type: "video" as const};
+        }
+        return r;
+    });
 }
 
 // Run async tasks in sequential batches to respect concurrent connection limits
@@ -183,7 +207,10 @@ Respond ONLY in valid JSON, no markdown:
   ]
 }`) as LessonResources;
 
-    return result;
+    return {
+        ...result,
+        resources: sanitizeResources(result.resources ?? [], outline.title, skillName),
+    };
 }
 
 // ============================================
@@ -486,3 +513,20 @@ Respond STRICTLY in JSON format without markdown:
         }
     }
 );
+
+// ============================================
+// HTTP: ping — health check, no Claude call
+// Written by Claude — useful for testing backend availability without burning tokens
+// ============================================
+export const ping = onRequest((req, res) => {
+    setCors(res);
+    if (req.method === "OPTIONS") {
+        res.status(204).send("");
+        return;
+    }
+    res.status(200).json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        version: "2.0.0-multi-agent",
+    });
+});

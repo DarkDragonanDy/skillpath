@@ -1,3 +1,7 @@
+/**
+ * SkillPath — Assessment Page
+ * Written collaboratively by Andrej and Claude
+ */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSkillStore } from "../store/skillStore";
